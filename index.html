@@ -3,6 +3,80 @@
 <head>
   <meta charset="UTF-8" />
   <title>智能语音输入法</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: "Microsoft Yahei", sans-serif;
+    }
+    body {
+      background-color: #f5f7fa;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+    }
+    .main-card {
+      width: 520px;
+      background: #fff;
+      padding: 30px;
+      border-radius: 16px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    }
+    .title {
+      font-size: 24px;
+      font-weight: bold;
+      text-align: center;
+      margin-bottom: 20px;
+      color: #222;
+    }
+    .state-info {
+      padding: 10px 15px;
+      background: #e8f4ff;
+      border-radius: 8px;
+      margin-bottom: 15px;
+      color: #0056b3;
+    }
+    textarea {
+      width: 100%;
+      height: 180px;
+      padding: 12px;
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      resize: none;
+      font-size: 15px;
+      margin-bottom: 20px;
+    }
+    .btn-group {
+      display: flex;
+      gap: 12px;
+    }
+    button {
+      flex: 1;
+      padding: 12px;
+      border: none;
+      border-radius: 8px;
+      font-size: 15px;
+      cursor: pointer;
+      transition: 0.2s;
+    }
+    #beginBtn {
+      background: #28a745;
+      color: white;
+    }
+    #endBtn {
+      background: #ffc107;
+      color: #222;
+    }
+    #resetBtn {
+      background: #dc3545;
+      color: white;
+    }
+    button:hover {
+      opacity: 0.9;
+    }
+  </style>
 </head>
 <body>
 <div class="main-card">
