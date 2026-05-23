@@ -1,145 +1,168 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
+
 <head>
   <meta charset="UTF-8" />
-  <title>智能语音输入法</title>
+  <title>智能语音输入工具</title>
   <style>
     * {
       margin: 0;
       padding: 0;
       box-sizing: border-box;
-      font-family: "Microsoft Yahei", sans-serif;
+      font-family: "Segoe UI", sans-serif;
     }
+
     body {
-      background-color: #f5f7fa;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      min-height: 100vh;
+      background-color: #edf2fa;
+      padding: 35px 18px;
     }
+
     .main-card {
-      width: 520px;
-      background: #fff;
-      padding: 30px;
-      border-radius: 16px;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+      max-width: 680px;
+      margin: 0 auto;
+      background: #ffffff;
+      padding: 28px;
+      border-radius: 14px;
+      box-shadow: 0 3px 10px rgba(0, 0, 0, 0.07);
     }
+
     .title {
-      font-size: 24px;
-      font-weight: bold;
       text-align: center;
-      margin-bottom: 20px;
-      color: #222;
+      margin-bottom: 18px;
+      color: #1f2937;
+      font-size: 22px;
     }
+
     .state-info {
-      padding: 10px 15px;
-      background: #e8f4ff;
-      border-radius: 8px;
-      margin-bottom: 15px;
-      color: #0056b3;
+      text-align: center;
+      color: #555555;
+      margin-bottom: 12px;
+      font-size: 14px;
     }
-    textarea {
+
+    #showArea {
       width: 100%;
-      height: 180px;
-      padding: 12px;
-      border: 1px solid #ddd;
-      border-radius: 8px;
+      height: 210px;
+      padding: 15px;
+      border: 1px solid #d1d5db;
+      border-radius: 9px;
+      font-size: 16px;
+      line-height: 1.65;
       resize: none;
-      font-size: 15px;
-      margin-bottom: 20px;
     }
+
     .btn-group {
       display: flex;
-      gap: 12px;
+      gap: 10px;
+      justify-content: center;
+      margin-top: 18px;
     }
-    button {
-      flex: 1;
-      padding: 12px;
+
+    .btn-style {
+      padding: 9px 20px;
       border: none;
-      border-radius: 8px;
-      font-size: 15px;
+      border-radius: 7px;
       cursor: pointer;
-      transition: 0.2s;
+      font-size: 14px;
     }
-    #beginBtn {
-      background: #28a745;
-      color: white;
+
+    .btn-start {
+      background: #3b82f6;
+      color: #fff;
     }
-    #endBtn {
-      background: #ffc107;
-      color: #222;
+
+    .btn-pause {
+      background: #22c55e;
+      color: #fff;
     }
-    #resetBtn {
-      background: #dc3545;
-      color: white;
-    }
-    button:hover {
-      opacity: 0.9;
+
+    .btn-clear {
+      background: #ef4444;
+      color: #fff;
     }
   </style>
 </head>
+
 <body>
-<div class="main-card">
-  <div class="title">智能语音输入法</div>
-  <div class="state-info" id="statusMsg">系统就绪，可开始语音录入</div>
-  <textarea id="showArea" placeholder="语音识别内容将实时展示在此处"></textarea>
-  <div class="btn-group">
-    <button id="beginBtn">开始录入</button>
-    <button id="endBtn">暂停录入</button>
-    <button id="resetBtn">清空文本</button>
+  <div class="main-card">
+    <div class="title">智能语音输入法</div>
+    <div class="state-info" id="statusMsg">系统就绪，可开始语音录入</div>
+    <textarea id="showArea" placeholder="语音识别内容将实时展示在此处"></textarea>
+    <div class="btn-group">
+      <button class="btn-style btn-start" id="beginBtn">开始录入</button>
+      <button class="btn-style btn-pause" id="endBtn">暂停录入</button>
+      <button class="btn-style btn-clear" id="resetBtn">清空文本</button>
+    </div>
   </div>
-</div>
 
-<script>
-  // 获取元素
-  const beginBtn = document.getElementById('beginBtn');
-  const endBtn = document.getElementById('endBtn');
-  const resetBtn = document.getElementById('resetBtn');
-  const showArea = document.getElementById('showArea');
-  const statusMsg = document.getElementById('statusMsg');
+  <script>
+    // 获取页面DOM元素
+    let displayBox = document.getElementById('showArea');
+    let statusNotice = document.getElementById('statusMsg');
+    let beginButton = document.getElementById('beginBtn');
+    let endButton = document.getElementById('endBtn');
+    let resetButton = document.getElementById('resetBtn');
 
-  // 语音识别对象
-  let recognition;
-  let isRunning = false;
+    // 声明语音识别对象与运行状态
+    let voiceRecognize = null;
+    let isListening = false;
 
-  // 初始化语音识别
-  if ('webkitSpeechRecognition' in window) {
-    recognition = new webkitSpeechRecognition();
-    recognition.lang = 'zh-CN';
-    recognition.continuous = true;
-    recognition.interimResults = true;
+    // 检测浏览器语音识别支持情况
+    if (window.SpeechRecognition || window.webkitSpeechRecognition) {
+      // 兼容处理
+      let SpeechEngine = window.SpeechRecognition || window.webkitSpeechRecognition;
+      voiceRecognize = new SpeechEngine();
 
-    // 识别结果
-    recognition.onresult = function(e) {
-      let text = '';
-      for(let i = e.resultIndex; i < e.results.length; i++){
-        text += e.results[i][0].transcript;
+      // 识别基础配置
+      voiceRecognize.lang = 'zh-CN';
+      voiceRecognize.continuous = true;
+      voiceRecognize.interimResults = true;
+
+      // 接收语音识别结果
+      voiceRecognize.onresult = function (resData) {
+        let outputStr = '';
+        // 循环读取识别片段
+        for (let k = resData.resultIndex; k < resData.results.length; k++) {
+          outputStr += resData.results[k][0].transcript;
+        }
+        // 简单文本优化
+        outputStr = outputStr.replace(/\s{2,}/g, ' ');
+        displayBox.value = outputStr;
+      };
+
+      // 异常处理
+      voiceRecognize.onerror = function () {
+        statusNotice.innerText = '识别异常，请重新开启';
+        isListening = false;
+      };
+    } else {
+      statusNotice.innerText = '当前浏览器不支持语音功能，请更换Chrome/Edge';
+    }
+
+    // 开始语音监听
+    beginButton.onclick = function () {
+      if (!isListening) {
+        voiceRecognize.start();
+        isListening = true;
+        statusNotice.innerText = '正在接收语音，请说话...';
       }
-      showArea.value = text;
     };
 
-    // 开始识别
-    beginBtn.onclick = function() {
-      if(!isRunning){
-        recognition.start();
-        isRunning = true;
-        statusMsg.textContent = '正在语音录入，请说话...';
+    // 停止语音监听
+    endButton.onclick = function () {
+      if (isListening) {
+        voiceRecognize.stop();
+        isListening = false;
+        statusNotice.innerText = '已暂停语音录入';
       }
-    }
+    };
 
-    // 停止识别
-    endBtn.onclick = function() {
-      recognition.stop();
-      isRunning = false;
-      statusMsg.textContent = '已暂停语音录入';
-    }
-
-    // 清空文本
-    resetBtn.onclick = function() {
-      showArea.value = '';
-      statusMsg.textContent = '文本已清空，系统就绪';
-    }
-  }
-</script>
+    // 清空文本内容
+    resetButton.onclick = function () {
+      displayBox.value = '';
+      statusNotice.innerText = '内容已清空，可重新开始';
+    };
+  </script>
 </body>
+
 </html>
