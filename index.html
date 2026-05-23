@@ -89,5 +89,57 @@
     <button id="resetBtn">清空文本</button>
   </div>
 </div>
+
+<script>
+  // 获取元素
+  const beginBtn = document.getElementById('beginBtn');
+  const endBtn = document.getElementById('endBtn');
+  const resetBtn = document.getElementById('resetBtn');
+  const showArea = document.getElementById('showArea');
+  const statusMsg = document.getElementById('statusMsg');
+
+  // 语音识别对象
+  let recognition;
+  let isRunning = false;
+
+  // 初始化语音识别
+  if ('webkitSpeechRecognition' in window) {
+    recognition = new webkitSpeechRecognition();
+    recognition.lang = 'zh-CN';
+    recognition.continuous = true;
+    recognition.interimResults = true;
+
+    // 识别结果
+    recognition.onresult = function(e) {
+      let text = '';
+      for(let i = e.resultIndex; i < e.results.length; i++){
+        text += e.results[i][0].transcript;
+      }
+      showArea.value = text;
+    };
+
+    // 开始识别
+    beginBtn.onclick = function() {
+      if(!isRunning){
+        recognition.start();
+        isRunning = true;
+        statusMsg.textContent = '正在语音录入，请说话...';
+      }
+    }
+
+    // 停止识别
+    endBtn.onclick = function() {
+      recognition.stop();
+      isRunning = false;
+      statusMsg.textContent = '已暂停语音录入';
+    }
+
+    // 清空文本
+    resetBtn.onclick = function() {
+      showArea.value = '';
+      statusMsg.textContent = '文本已清空，系统就绪';
+    }
+  }
+</script>
 </body>
 </html>
